@@ -4,7 +4,7 @@ Turn a shaderpack the user already has (the *base*) into a patched pack, using a
 The library checks that the user's base is exactly the release your patch was made for, applies the patch, and writes the result.
 
 * **One jar, no dependencies.** Everything it needs is bundled and relocated, so it cannot clash with other libraries.
-* Pure Java **8+**
+* Pure Java **8+** tested also up to j25 and on windows, linux and mac
 * The base is **never modified**, and the patched pack appears under its final name only when it is complete.
 * **A lot** of this library is taken from the [**EuphoriaPatcher mod**](https://github.com/EuphoriaPatches/EuphoriaPatcher) originally and repurposed here
 
