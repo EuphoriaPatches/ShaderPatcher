@@ -107,6 +107,7 @@ tasks.withType(Javadoc).configureEach {
 	options.encoding = 'UTF-8'
 	options.addStringOption('Xdoclint:all,-missing', '-quiet')
 	options.addStringOption('-release', '8')
+	options.addBooleanOption('author', true)
 	// not API, only public because the packages of this library need to see each other
 	exclude 'com/euphoriapatches/shaderpatcher/internal/**'
 }
