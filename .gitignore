@@ -1,0 +1,28 @@
+# gradle
+.gradle/
+build/
+out/
+classes/
+
+# idea / eclipse / vscode
+.idea/
+*.iml
+*.ipr
+*.iws
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+*.launch
+
+# os
+.DS_Store
+Thumbs.db
+
+local.properties
+*.gpg
+*.asc
+
+/fixtures/
+PUBLISHING.md

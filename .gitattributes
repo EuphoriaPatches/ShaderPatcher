@@ -1,0 +1,3 @@
+# Fix windows messing up line endings
+*.patch binary
+gradlew text eol=lf

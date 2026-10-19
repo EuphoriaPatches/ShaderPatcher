@@ -1,0 +1,25 @@
+name: CI
+
+on: push
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      # Gradle itself runs on 17; the build downloads the JDK 8, 11, 21 and 25 toolchains it needs
+      # to run the test suite on every supported Java version (see build.gradle).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check (tests on Java 8, 11, 17, 21, 25 and against the shaded jar)
+        run: ./gradlew check --console=plain
+      - name: Publish to the local Maven repository (POM and artifacts sanity check)
+        run: ./gradlew publishToMavenLocal --console=plain

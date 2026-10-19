@@ -1,0 +1,168 @@
+plugins {
+	id 'java-library'
+	id 'com.gradleup.shadow' version '8.3.5'
+	id 'com.vanniktech.maven.publish' version '0.30.0'
+}
+
+group = project.property('GROUP')
+version = project.property('VERSION_NAME')
+
+repositories {
+	mavenCentral()
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = 8
+	options.encoding = 'UTF-8'
+	options.compilerArgs.addAll(['-Xlint:all', '-Xlint:-processing'])
+}
+
+// Everything the library needs at runtime is shaded (relocated) into the published jar, so the POM lists no
+// dependencies and nothing can clash with other copies of commons-compress inside a Minecraft install.
+configurations {
+	shade
+	compileOnly.extendsFrom shade
+	testImplementation.extendsFrom shade
+}
+
+dependencies {
+	shade 'io.sigpipe:jbsdiff:1.0'
+	shade 'org.apache.commons:commons-compress:1.27.1'
+
+	testImplementation platform('org.junit:junit-bom:5.10.3')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+def shadedPackage = 'com.euphoriapatches.shaderpatcher.internal.shaded'
+
+tasks.named('jar') {
+	archiveClassifier = 'plain'
+}
+
+tasks.named('shadowJar') {
+	archiveClassifier = ''
+	configurations = [project.configurations.shade]
+
+	relocate 'org.apache.commons.compress', "${shadedPackage}.commons.compress"
+	relocate 'org.apache.commons.io', "${shadedPackage}.commons.io"
+	relocate 'org.apache.commons.lang3', "${shadedPackage}.commons.lang3"
+	relocate 'org.apache.commons.codec', "${shadedPackage}.commons.codec"
+	relocate 'io.sigpipe.jbsdiff', "${shadedPackage}.jbsdiff"
+
+	mergeServiceFiles()
+
+	// Keep only the bundled classes that are reachable from this library. commons-compress alone is ~1 MB because
+	// it ships 7z, pack200, dump, ... which are never used here.
+	minimize()
+
+	// Java 8 jar: no multi-release content, no module descriptors of the bundled libraries
+	exclude 'META-INF/versions/**'
+	exclude '**/module-info.class'
+	exclude 'META-INF/maven/**'
+	// The bundled libraries' own license files collide by name, they are replaced by third-party/ below
+	exclude 'META-INF/LICENSE*'
+	exclude 'META-INF/NOTICE*'
+	exclude 'META-INF/DEPENDENCIES'
+	// jbsdiff's jar carries its own license copies at the jar root; they live in META-INF/licenses/ instead
+	exclude '*-LICENSE.txt'
+	// Data files of commons-codec's phonetic encoders, never used here (minimize() only drops classes)
+	exclude 'org/apache/commons/codec/language/**'
+
+	from('third-party') {
+		into 'META-INF/licenses'
+	}
+	from('LICENSE') {
+		into 'META-INF'
+	}
+
+	manifest {
+		attributes(
+			'Automatic-Module-Name': 'com.euphoriapatches.shaderpatcher',
+			'Implementation-Title': 'ShaderPatcher',
+			'Implementation-Version': project.version,
+			'Implementation-Vendor': 'SpacEagle17'
+		)
+	}
+}
+
+// Publish the shaded jar as the main artifact, with a POM that has no runtime dependencies.
+['apiElements', 'runtimeElements'].each { name ->
+	configurations.named(name) {
+		outgoing.artifacts.clear()
+		outgoing.artifact(tasks.named('shadowJar'))
+	}
+}
+tasks.named('assemble') {
+	dependsOn 'shadowJar'
+}
+
+tasks.withType(Javadoc).configureEach {
+	options.encoding = 'UTF-8'
+	options.addStringOption('Xdoclint:all,-missing', '-quiet')
+	options.addStringOption('-release', '8')
+	// not API, only public because the packages of this library need to see each other
+	exclude 'com/euphoriapatches/shaderpatcher/internal/**'
+}
+
+// Real shader packs for the golden tests are not part of the repository. Point this at a folder containing
+// ComplementaryReimagined_r5.9.3.zip and EuphoriaPatches_1.10.5.patch (default: ./fixtures); tests that need them
+// are skipped when the files are absent.
+def fixturesDir = findProperty('shaderpatcher.fixtures') ?: System.getenv('SHADERPATCHER_FIXTURES') ?: file('fixtures').absolutePath
+
+tasks.named('test', Test) {
+	useJUnitPlatform()
+	systemProperty 'shaderpatcher.fixtures', fixturesDir
+}
+
+// Run the same tests on the oldest and a newer runtime, since the library promises Java 8+.
+['8', '11', '21', '25'].each { jdk ->
+	tasks.register("testJava${jdk}", Test) {
+		group = 'verification'
+		description = "Runs the tests on Java ${jdk}"
+		testClassesDirs = sourceSets.test.output.classesDirs
+		classpath = sourceSets.test.runtimeClasspath
+		javaLauncher = javaToolchains.launcherFor {
+			languageVersion = JavaLanguageVersion.of(jdk.toInteger())
+		}
+		useJUnitPlatform()
+		systemProperty 'shaderpatcher.fixtures', fixturesDir
+	}
+}
+
+// Runs the tests against ONLY the shaded jar (no jbsdiff / commons-compress on the classpath), on Java 8.
+// This proves the published artifact is self-contained and that relocation did not break anything.
+tasks.register('testShaded', Test) {
+	group = 'verification'
+	description = 'Runs the tests against the shaded jar alone, on Java 8'
+	dependsOn 'shadowJar', 'processTestResources'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = files(sourceSets.test.output, tasks.named('shadowJar').flatMap { it.archiveFile }) +
+			(configurations.testRuntimeClasspath - configurations.shade)
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(8)
+	}
+	useJUnitPlatform {
+		// These tests use jbsdiff directly, which only exists unshaded
+		excludeTags 'needs-deps'
+	}
+	systemProperty 'shaderpatcher.fixtures', fixturesDir
+}
+
+tasks.named('check') {
+	dependsOn 'testJava8', 'testJava11', 'testJava21', 'testJava25', 'testShaded'
+}
+
+mavenPublishing {
+	// Only sign when signing material is configured, so publishToMavenLocal works without a key
+	def hasSigning = ['signingInMemoryKey', 'signing.keyId', 'signing.gnupg.keyName'].any { findProperty(it) != null }
+	if (hasSigning) {
+		signAllPublications()
+	}
+}
