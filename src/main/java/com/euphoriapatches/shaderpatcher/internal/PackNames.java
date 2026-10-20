@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  */
 public final class PackNames {
     // Removes copy suffixes such as " (1)", " - Copy", "_copy", " (copy)" at the end of a name
-    private static final Pattern COPY_SUFFIX = Pattern.compile("(?i)(?:[\\s_-]+(?:\\(copy\\)|copy|\\(\\d+\\)|\\d+))+$");
+    private static final Pattern COPY_SUFFIX = Pattern.compile("(?i)(?:[\\s_-]+(?:\\(copy\\)|copy(?:[\\s_-]*\\d+)?|\\(\\d+\\)))+$");
 
     private PackNames() {
     }

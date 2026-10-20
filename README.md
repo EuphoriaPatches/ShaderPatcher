@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.euphoriapatches:shaderpatcher:0.1.1'
+    implementation 'com.euphoriapatches:shaderpatcher:0.1.2'
 }
 ```
 
@@ -24,7 +24,7 @@ dependencies {
 <dependency>
     <groupId>com.euphoriapatches</groupId>
     <artifactId>shaderpatcher</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 </dependency>
 ```
 

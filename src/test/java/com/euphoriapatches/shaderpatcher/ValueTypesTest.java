@@ -42,6 +42,14 @@ class ValueTypesTest {
         assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1 (1)"));
         assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1 - Copy"));
         assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1_copy (2)"));
+        assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1 copy 2"));
+        assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1 - Copy (2)"));
+        assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1 (copy)"));
+        // a trailing number on its own is part of the name, not a copy counter
+        assertEquals("Base-120", PackNames.cleanBaseName("Base-120"));
+        assertEquals("Pack_2", PackNames.cleanBaseName("Pack_2"));
+        assertEquals("Shader 3", PackNames.cleanBaseName("Shader 3"));
+        assertEquals("Base-120", PackNames.cleanBaseName("Base-120 (1)"));
         assertEquals("Pack_r1", PackNames.cleanBaseName("Pack_r1"));
         assertEquals("Pack r1", PackNames.cleanBaseName("Pack   r1"));
         assertEquals("Pack_r1", PackNames.stripZipExtension("Pack_r1.ZIP"));
