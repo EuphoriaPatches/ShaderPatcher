@@ -8,6 +8,12 @@ The library checks that the user's base is exactly the release your patch was ma
 * The base is **never modified**, and the patched pack appears under its final name only when it is complete.
 * **A lot** of this library is taken from the [**EuphoriaPatcher mod**](https://github.com/EuphoriaPatches/EuphoriaPatcher) originally and repurposed here
 
+## Example
+
+[**PatcherModExample**](https://github.com/EuphoriaPatches/PatcherModExample) is a complete Fabric and NeoForge muliloader example mod that uses this library:
+it bundles the library, generates a patch, gets the shaderpacks folder and applies the patch with both output naming options.
+It is the quickest way to see how everything fits together.
+
 ## Install
 
 ```groovy
