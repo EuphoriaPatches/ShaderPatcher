@@ -1,6 +1,19 @@
 name: CI
 
-on: push
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'third-party/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'LICENSE'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
 
 jobs:
   build:
