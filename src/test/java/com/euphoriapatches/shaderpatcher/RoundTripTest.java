@@ -84,6 +84,22 @@ class RoundTripTest {
     }
 
     @Test
+    void outputNameIsKnownBeforeApplying() throws Exception {
+        Path folderBase = temp.resolve("SampleBase_r1");
+        Path zipBase = temp.resolve("SampleBase_r1 (1).zip");
+        ShaderPatcher patchOnly = ShaderPatcher.builder(PatchSource.path(patchFile)).outputNaming(OutputNaming.PATCH_ONLY).build();
+
+        assertEquals("SampleBase_r1 + SamplePatch_2.0", patcher.getOutputName(folderBase));
+        assertEquals("SampleBase_r1 + SamplePatch_2.0", patcher.getOutputName(zipBase)); // .zip and copy suffix are dropped
+        assertEquals("SamplePatch_2.0", patchOnly.getOutputName(folderBase));
+
+        // and it is exactly what apply creates
+        TestSupport.sampleBase(folderBase);
+        PatchResult result = patcher.apply(folderBase, temp.resolve("shaderpacks"));
+        assertEquals(patcher.getOutputName(folderBase), result.getOutputDir().getFileName().toString());
+    }
+
+    @Test
     void patchOnlyNamingIgnoresTheBaseName() throws Exception {
         ShaderPatcher p = ShaderPatcher.builder(PatchSource.path(patchFile)).outputNaming(OutputNaming.PATCH_ONLY).build();
         Path base = TestSupport.sampleBase(temp.resolve("Whatever_Name"));

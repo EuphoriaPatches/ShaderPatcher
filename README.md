@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.euphoriapatches:shaderpatcher:0.1.2'
+    implementation 'com.euphoriapatches:shaderpatcher:0.1.3'
 }
 ```
 
@@ -30,7 +30,7 @@ dependencies {
 <dependency>
     <groupId>com.euphoriapatches</groupId>
     <artifactId>shaderpatcher</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
 </dependency>
 ```
 
@@ -90,6 +90,7 @@ All optional, set them before `build()`:
 | `matchesBase(path)`                             | the same check, but returns `true`/`false` and never throws                                              |
 | `matchesBase(path, false)`                      | only compares the archive size, which is much faster. Handy to find candidates in a folder full of packs |
 | `getMetadata()`                                 | names, versions and fingerprints stored in the patch file                                                |
+| `getOutputName(base)`                           | the folder name `apply` would create for this base, so you can check if the result already exists        |
 | `ShaderPatcher.fingerprint(path)`               | size and SHA-256 of a pack's archive, for tools                                                          |
 | `ShaderPatcher.extract(zipOrFolder, targetDir)` | copies a folder or unpacks a zip into a target folder                                                    |
 

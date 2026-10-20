@@ -72,12 +72,23 @@ public final class ShaderPatcher {
         return metadata;
     }
 
+    /**
+     * Name of the folder {@link #apply} creates for this base, for example {@code BasePack_r5 + MyPatch_1.0}. Lets you
+     * check whether the result already exists without applying anything. Only the file name of {@code base} is used.
+     */
+    public String getOutputName(Path base) {
+        requireNonNull(base, "base");
+        String name = naming.name(new OutputNaming.NamingContext(fileNameOf(base), metadata));
+        PackNames.requireFolderName(name);
+        return name;
+    }
+
     /** Verifies the base pack and writes the patched pack to {@code targetDir/<name>}. Appears complete or not at all. */
     public PatchResult apply(Path base, Path targetDir) throws ShaderPatcherException {
         requireNonNull(base, "base");
         requireNonNull(targetDir, "targetDir");
 
-        Path output = targetDir.resolve(outputName(base));
+        Path output = targetDir.resolve(getOutputName(base));
         if (existingOutput == ExistingOutput.FAIL && Files.exists(output)) {
             throw new OutputExistsException(output);
         }
@@ -101,12 +112,6 @@ public final class ShaderPatcher {
     /** A valid base never unpacks to more than the archive size stored in the patch. */
     private long expectedSize() {
         return metadata.getBaseFingerprint().getSize();
-    }
-
-    private String outputName(Path base) {
-        String name = naming.name(new OutputNaming.NamingContext(fileNameOf(base), metadata));
-        PackNames.requireFolderName(name);
-        return name;
     }
 
     /** Archives the base pack and checks it against the fingerprint the patch expects. Returns the archive file. */
