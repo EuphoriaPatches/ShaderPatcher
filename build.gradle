@@ -33,7 +33,7 @@ configurations {
 
 dependencies {
 	shade 'io.sigpipe:jbsdiff:1.0'
-	shade 'org.apache.commons:commons-compress:1.27.1'
+	shade 'org.apache.commons:commons-compress:1.28.0'
 
 	testImplementation platform('org.junit:junit-bom:5.10.3')
 	testImplementation 'org.junit.jupiter:junit-jupiter'

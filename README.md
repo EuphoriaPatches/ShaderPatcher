@@ -8,11 +8,11 @@ The library checks that the user's base is exactly the release your patch was ma
 * The base is **never modified**, and the patched pack appears under its final name only when it is complete.
 * **A lot** of this library is taken from the [**EuphoriaPatcher mod**](https://github.com/EuphoriaPatches/EuphoriaPatcher) originally and repurposed here
 
-## Example
-
-[**PatcherModExample**](https://github.com/EuphoriaPatches/PatcherModExample) is a complete Fabric and NeoForge muliloader example mod that uses this library:
-it bundles the library, generates a patch, gets the shaderpacks folder and applies the patch with both output naming options.
-It is the quickest way to see how everything fits together.
+> [!TIP]
+> ### Start with the example mod: [**PatcherModExample**](https://github.com/EuphoriaPatches/PatcherModExample)
+> A complete, working Fabric and NeoForge multiloader mod that uses this library. It bundles the library, generates a patch,
+> finds the shaderpacks folder and applies the patch with both output naming options.
+> **It is the quickest way to see how everything fits together. Copy from it!**
 
 ## Install
 
@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.euphoriapatches:shaderpatcher:0.1.3'
+    implementation 'com.euphoriapatches:shaderpatcher:0.1.4'
 }
 ```
 
@@ -30,7 +30,7 @@ dependencies {
 <dependency>
     <groupId>com.euphoriapatches</groupId>
     <artifactId>shaderpatcher</artifactId>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
 </dependency>
 ```
 
@@ -114,6 +114,19 @@ GeneratedPatch patch = PatchGenerator.generate(GenerateRequest.builder(spec)
 The new patch is always applied to the base in memory and the result compared with your edited pack byte for byte before
 anything is written.
 
+## How it works
+
+The patch itself is a [bsdiff](https://www.daemonology.net/bsdiff/) binary diff, created and applied by
+[**jbsdiff**](https://github.com/malensek/jbsdiff), a pure Java implementation of Colin Percival's bsdiff algorithm.
+The base pack (zip or folder) is first packed into a deterministic tar archive, so the same pack always produces the same bytes.
+
+* **Generating:** jbsdiff computes the difference between the base archive and your edited archive. The result is stored in the
+  `.patch` file together with the base and result fingerprints (size and SHA-256), the patch name/version and the archive rules.
+* **Applying:** the user's base is archived the same way and checked against the stored fingerprint, jbsdiff applies the diff to it in memory, the result
+  is checked against the stored result hash, and only then is it unpacked into the output folder.
+
+Because only the difference is shipped, the patch contains none of the base pack's files, and it is only valid for the exact release it was generated for.
+
 ## Errors
 
 The library never logs or prints. Everything that can go wrong is a subclass of the checked
@@ -142,7 +155,7 @@ know, with a clear `PatchCorruptException`, instead of failing mysteriously. Wil
 
 ## Third-party software
 
-The jar bundles Apache Commons Compress, IO, Lang and Codec (Apache License 2.0) and jbsdiff (BSD 2-Clause), relocated into
+The jar bundles Apache Commons Compress, IO, Lang and Codec (Apache License 2.0) and [jbsdiff](https://github.com/malensek/jbsdiff) (BSD 2-Clause), relocated into
 `com.euphoriapatches.shaderpatcher.internal.shaded`. Their licenses and notices are in `META-INF/licenses/` inside the jar
 and in [third-party/](third-party/).
 

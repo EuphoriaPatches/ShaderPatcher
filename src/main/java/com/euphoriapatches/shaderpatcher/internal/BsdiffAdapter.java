@@ -3,7 +3,6 @@ package com.euphoriapatches.shaderpatcher.internal;
 import io.sigpipe.jbsdiff.Diff;
 import io.sigpipe.jbsdiff.InvalidHeaderException;
 import io.sigpipe.jbsdiff.Patch;
-import org.apache.commons.compress.compressors.CompressorException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,7 +21,7 @@ public final class BsdiffAdapter {
         ByteArrayOutputStream out = new ByteArrayOutputStream(Math.max(1024, newBytes.length / 4));
         try {
             Diff.diff(oldBytes, newBytes, out);
-        } catch (CompressorException | InvalidHeaderException | IOException e) {
+        } catch (InvalidHeaderException | IOException e) {
             throw new IOException("bsdiff failed: " + e.getMessage(), e);
         }
         return out.toByteArray();
@@ -32,7 +31,7 @@ public final class BsdiffAdapter {
         ByteArrayOutputStream out = new ByteArrayOutputStream(oldBytes.length + 1024);
         try {
             Patch.patch(oldBytes, patch, out);
-        } catch (CompressorException | InvalidHeaderException | IOException e) {
+        } catch (InvalidHeaderException | IOException e) {
             throw new IOException("bspatch failed: " + e.getMessage(), e);
         } catch (RuntimeException e) {
             throw new IOException("bspatch failed on a malformed patch: " + e, e);
