@@ -11,7 +11,7 @@ The library checks that the user's base is exactly the release your patch was ma
 > [!TIP]
 > ### Start with the example mod: [**PatcherModExample**](https://github.com/EuphoriaPatches/PatcherModExample)
 > A complete, working Fabric and NeoForge multiloader mod that uses this library. It bundles the library, generates a patch,
-> finds the shaderpacks folder and applies the patch with both output naming options.
+> finds the shaderpacks folder and applies the patch with both output naming options.  
 > **It is the quickest way to see how everything fits together. Copy from it!**
 
 ## Install
